@@ -66,7 +66,8 @@ def main():
     logging.debug('Connecting to the Todoist API')
     api = TodoistAPI(token=args.api_key)
     logging.debug('Syncing the current state from the API')
-    api.sync(resource_types=['projects', 'labels', 'items'])
+    # api.sync(resource_types=['projects', 'labels', 'items'])
+    api.sync()
 
     # Check the next action label exists
     labels = api.labels.all(lambda x: x['name'] == args.label)
@@ -80,7 +81,7 @@ def main():
     def get_project_type(project_object):
         """Identifies how a project should be handled"""
         name = project_object['name'].strip()
-        if project['name'] == 'Inbox':
+        if name == 'Inbox':
             return args.inbox
         elif name[-1] == args.parallel_suffix:
             return 'parallel'
@@ -112,9 +113,10 @@ def main():
     # Main loop
     while True:
         try:
-            api.sync(resource_types=['projects', 'labels', 'items'])
+            # api.sync(resource_types=['projects', 'labels', 'items'])
+            api.sync()
         except Exception as e:
-            logging.exception('Error trying to sync with Todoist API: %s' % str(e))
+            logging.exception('Error trying to sync with Todoist API: %s', e)
         else:
             for project in api.projects.all():
                 project_type = get_project_type(project)
@@ -141,11 +143,16 @@ def main():
                         if item_type or len(child_items) > 0:
                             # Process serial tagged items
                             if item_type == 'serial':
-                                for idx, child_item in enumerate(child_items):
-                                    if idx == 0:
+                                first = True
+                                for child_item in child_items:
+                                    if not child_item["checked"] and first:
                                         add_label(child_item, label_id)
+                                        first = False
                                     else:
                                         remove_label(child_item, label_id)
+                                if first:
+                                    add_label(item, label_id)
+                                    continue
                             # Process parallel tagged items or untagged parents
                             else:
                                 for child_item in child_items:
