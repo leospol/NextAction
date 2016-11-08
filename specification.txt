@@ -1,0 +1,14 @@
+Projects
+ - project can be marked as serial/parallel [done]
+ - sub-project inherits type from its parents by default [done]
+ - sub-project type can be overwritten [done]
+ - not marked projects are ignored [done]
+
+Items
+ - items are labeled
+  - all subitems for parallel [done]
+  - only the first not finished [done]
+ - items inherits type from project and parent items [done]
+ - item type can be overwritten [done]
+ - waitfor label blocks serial items, unlabel item for parallel [done]
+ - level 1 item is active when at least one sub item is next [done]
